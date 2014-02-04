@@ -7,23 +7,73 @@
 //
 
 #import "HONViewController.h"
+#import <CoreBluetooth/CoreBluetooth.h>
+#import <CoreLocation/CLBeaconRegion.h>
 
-@interface HONViewController ()
+@interface HONViewController () <CBPeripheralManagerDelegate>
 
 @end
 
 @implementation HONViewController
-
-- (void)viewDidLoad
 {
-    [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    CBPeripheralManager *_peripheralManager;
+    BOOL _isAdvertising;
 }
 
-- (void)didReceiveMemoryWarning
+-(void)viewDidLoad {
+    _peripheralManager = [[CBPeripheralManager alloc]initWithDelegate:self queue:nil];
+}
+
+- (void)startAdvertising
 {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    NSUUID *estimoteUUID = [[NSUUID alloc] initWithUUIDString:@"076E0F6E-14BC-48C5-BA5F-22B1B5469213"];
+    
+    CLBeaconRegion *region = [[CLBeaconRegion alloc] initWithProximityUUID:estimoteUUID
+                                                                     major:123
+                                                                     minor:456
+                                                                identifier:@"SimEstimote"];
+    NSDictionary *beaconPeripheralData = [region peripheralDataWithMeasuredPower:nil];
+    
+    [_peripheralManager startAdvertising:beaconPeripheralData];
+}
+
+- (void)updateEmitterForDesiredState
+{
+    if (_peripheralManager.state == CBPeripheralManagerStatePoweredOn)
+    {
+        // only issue commands when powered on
+        
+        if (_isAdvertising)
+        {
+            if (!_peripheralManager.isAdvertising)
+            {
+                [self startAdvertising];
+            }
+        }
+        else
+        {
+            if (_peripheralManager.isAdvertising)
+            {
+                [_peripheralManager stopAdvertising];
+            }
+        }
+    }
+}
+
+#pragma mark - CBPeripheralManagerDelegate
+
+- (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
+{
+    [self updateEmitterForDesiredState];
+}
+
+#pragma mark - Actions
+
+- (IBAction)emittSwitchToggled:(UISwitch *)sender {
+    
+    _isAdvertising = sender.isOn;
+    
+    [self updateEmitterForDesiredState];
 }
 
 @end

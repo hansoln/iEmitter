@@ -201,7 +201,7 @@
 				ORGANIZATIONNAME = "Hans Olav Nome";
 				TargetAttributes = {
 					9AAE267C18A001F00055B910 = {
-						TestTargetID = 9AAE265B18A001F00055B910;
+						TestTargetID = 9AAE265B18A001F00055B910 /* iEmitter */;
 					};
 				};
 			};
